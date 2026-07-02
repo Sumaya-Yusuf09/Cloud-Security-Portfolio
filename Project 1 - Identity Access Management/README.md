@@ -33,11 +33,11 @@ Both groups were created as assigned-membership security groups, which is the st
 
 **User list before any policies were applied:**
 
-![User list](images/User_Created-Azure.png)
+![User list](User_Created-Azure.png)
 
 **The two groups, IT-admins and Finance-users:**
 
-![Groups created](images/Groups_Created-Azure.png)
+![Groups created](Groups_Created-Azure.png)
 
 ---
 
@@ -54,15 +54,15 @@ The policy was enabled in **Report-only** mode first during setup to avoid an ac
 
 **Policy assignment and exclusion configuration:**
 
-![MFA policy exclusion](images/New_policy_for_all_users_except_Sumaya_Yusuf.png)
+![MFA policy exclusion](New_policy_for_all_users_except_Sumaya_Yusuf.png)
 
 **Grant control set to "Require multifactor authentication":**
 
-![MFA grant control](images/Adding_control_access_to_the_new_policy.png)
+![MFA grant control](Adding_control_access_to_the_new_policy.png)
 
 **Confirmed policy state: On:**
 
-![MFA policy on](images/MFA_policy_is_on.png)
+![MFA policy on](MFA_policy_is_on.png)
 
 ---
 
@@ -74,7 +74,7 @@ Both policies together represent a layered access model: MFA everywhere, plus a 
 
 **Both policies listed and enabled:**
 
-![Policy list](images/Policy_List.png)
+![Policy list](Policy_List.png)
 
 ---
 
@@ -85,12 +85,12 @@ Used Entra's **Conditional Access "What If"** tool to simulate sign-in scenarios
 **Test 1 — Simulated sign-in from Brazil:**
 Input: IP `190.25.30.45`, Country: Brazil. Result: both policies evaluated as **applying** — "Require MFA for all users" and "Block sign-in from outside EU" — confirming the location-based block would correctly catch an out-of-region sign-in.
 
-![What-if Brazil test](images/Testing__1__-_What_if__Policy_.png)
+![What-if Brazil test](Testing__1__-_What_if__Policy_.png)
 
 **Test 2 — Simulated sign-in for a specific user/app:**
 Input: user Hakeem Saafo, device platform Windows, client app "Mobile apps and desktop clients," target app Azure AD Notification. Used to confirm policy scope and targeting logic against a real user/app combination.
 
-![What-if user test](images/Testing_-_What_if__policy_.png)
+![What-if user test](Testing_-_What_if__policy_.png)
 
 ---
 
@@ -106,28 +106,28 @@ Role settings configured:
 
 **Role setting: 8-hour max duration, justification + approval required:**
 
-![PIM role settings](images/Setting_Assignment_duration___Requiring_approval_upon_acitivations.png)
+![PIM role settings](Setting_Assignment_duration___Requiring_approval_upon_acitivations.png)
 
 **Eligible assignments for Security Reader:**
 
-![Security Reader eligible assignments](images/Assigned_Security_Reader_to_IT-admins.png)
+![Security Reader eligible assignments](Assigned_Security_Reader_to_IT-admins.png)
 
-![Security Reader eligible assignments 2](images/Assigned_Security_Reader_to_IT_Admins.png)
+![Security Reader eligible assignments 2](Assigned_Security_Reader_to_IT_Admins.png)
 
 **Workflow demonstrated end-to-end:**
 
 1. Assigned the **Security Reader** role as an *eligible* assignment to the IT-Admins group
 2. A user (Sara Farah) requested activation, providing a justification: *"Investigating Conditional Access and sign-in logs following suspicious sign-in report, need read access to review configuration and audit logs"*
 
-![Activation request](images/Assignment_Activation_Request.png)
+![Activation request](Assignment_Activation_Request.png)
 
 3. The request appeared in the **Approve requests** queue and was approved
 
-![Approved request](images/Approve_Assignment_Request.png)
+![Approved request](Approve_Assignment_Request.png)
 
 4. Once approved, the role became **active** for a time-boxed window (start/end time logged), after which it automatically expires and access is revoked
 
-![Final assignment list](images/Assignment_List.png)
+![Final assignment list](Assignment_List.png)
 
 This reflects a least-privilege model: nobody holds standing admin/reader access — it's requested, justified, approved, and time-limited.
 
@@ -141,19 +141,19 @@ Simulated an employee leaving the organization and walked through the deprovisio
 
 **Before state:** Moa Ali is an active member of the **Finance-users** group (3 members total: Aya Marwan, Hakeem Saafo, Moa Ali)
 
-![Finance users before](images/Finance_User_List.png)
+![Finance users before](Finance_User_List.png)
 
 **Step A — Disabled the account** in Entra ID. This immediately blocks sign-in and ends any active sessions across Microsoft services, while preserving the account and its data (no deletion, so mail/data can still be reviewed or handed over during the transition).
 
-![Disabling sign-in](images/Blocking_Moa_Ali_from_signing_in_-_Offboarding.png)
+![Disabling sign-in](Blocking_Moa_Ali_from_signing_in_-_Offboarding.png)
 
-![Account disabled status](images/Account_Disabled_-_Moa_Ali.png)
+![Account disabled status](Account_Disabled_-_Moa_Ali.png)
 
 **Step B — Removed Moa Ali from the Finance-Users group**, revoking the group-based access that came with that role.
 
 **After state:** Finance-users group now shows only 2 members (Aya Marwan, Hakeem Saafo) — Moa Ali's access has been fully deprovisioned.
 
-![Finance users after](images/Moa_Ali_removed_from_Finance_Users_Group.png)
+![Finance users after](Moa_Ali_removed_from_Finance_Users_Group.png)
 
 This mirrors a standard leaver checklist: disable sign-in first (immediate containment), then clean up group/role memberships (formal deprovisioning), while keeping the account itself intact for a defined retention period rather than deleting it outright.
 
