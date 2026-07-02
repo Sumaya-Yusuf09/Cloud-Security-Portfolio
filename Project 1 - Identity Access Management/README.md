@@ -1,170 +1,111 @@
-# Project 1: Identity & Access Management (IAM) with Microsoft Entra ID
+# Project 1: Identity & Access Management (Entra ID)
 
-## Overview
+## What problem was I solving?
 
-This project simulates a small organization's identity and access management setup in **Microsoft Entra ID** (Azure AD). It covers the core building blocks of IAM in a real Microsoft 365 / Azure environment: user and group provisioning, Conditional Access policies, Privileged Identity Management (PIM), and a mock joiner-mover-leaver (JML) offboarding process.
+Most real world cloud breaches don't start with a firewall being hacked. They start with a stolen or over privileged login. So the question this project answers is simple: if someone gets a user's password, how do I make sure that's not enough to get into the system?
 
-The goal was to get hands-on with the tools that a SOC analyst, IT support specialist, or cybersecurity analyst would actually use day-to-day — not just read about them.
+I built this in Microsoft Entra ID (Microsoft's identity platform, formerly called Azure AD), a small test environment with fake users and groups, to practice the controls that actually stop stolen credentials from turning into a full breach.
 
-**Environment:** Microsoft Entra ID (tenant: Standardkatalog)
-**Tools used:** Microsoft Entra admin center, Conditional Access, Privileged Identity Management (PIM), Conditional Access "What If" tool
+## What did I do?
 
----
+### 1. Set up a starting point with users and groups
 
-## Objectives
-
-1. Set up a small test tenant with users and groups
-2. Build and enforce a Conditional Access policy requiring MFA
-3. Add a second Conditional Access policy restricting sign-in by location
-4. Validate policy logic using the "What If" simulation tool
-5. Configure PIM for just-in-time, approval-based privileged access
-6. Simulate an employee offboarding and show the deprovisioning step
-
----
-
-## Step 1 — Test Users & Groups
-
-Created 6 test users in Entra ID (Anna Andersson, Aya Marwan, Erik Samuel, Hakeem Saafo, Moa Ali, and my own account) and 2 security groups to represent typical org structure:
-
-- **IT-admins** — used later as the PIM-eligible group for privileged role assignment
-- **Finance-users** — used later in the offboarding scenario
-
-Both groups were created as assigned-membership security groups, which is the standard type for role and policy scoping in Entra ID.
-
-**User list before any policies were applied:**
+Before adding any security controls, I created a small test environment with 6 fake users and two groups, IT-admins and Finance-users, to mirror how a real company organizes people. This is the before state, a normal set of accounts with no extra protection yet.
 
 ![User list](User_Created-Azure.png)
-
-**The two groups, IT-admins and Finance-users:**
-
 ![Groups created](Groups_Created-Azure.png)
 
----
+### 2. Required MFA for everyone
 
-## Step 2 — Conditional Access: Require MFA for All Users
+MFA, or multifactor authentication, means a password alone isn't enough to sign in. You also need to approve a prompt on your phone or enter a code. It's one of the single most effective things an organization can do, because it stops a stolen password from being usable on its own.
 
-Built a Conditional Access policy named **"Require MFA for all users"** that:
-
-- Applies to **all users and groups**
-- Targets **all cloud apps/resources**
-- Grants access only if **multifactor authentication** is satisfied
-- **Excludes my own account** (Sumaya Yusuf) as a break-glass exclusion, so I wouldn't lock myself out of the tenant while testing — a common real-world safeguard when rolling out a new policy
-
-The policy was enabled in **Report-only** mode first during setup to avoid an accidental lockout, then switched **On** once verified.
-
-**Policy assignment and exclusion configuration:**
+I built a policy called "Require MFA for all users" that applies to everyone signing into any app in the tenant, and set it so nobody gets in unless MFA is completed. I excluded my own admin account from the policy while testing. This is intentional and something you'd genuinely do in a real rollout, since you don't want to lock yourself out while you're still setting things up. Once I confirmed it worked as expected, I switched it fully on.
 
 ![MFA policy exclusion](New_policy_for_all_users_except_Sumaya_Yusuf.png)
-
-**Grant control set to "Require multifactor authentication":**
-
 ![MFA grant control](Adding_control_access_to_the_new_policy.png)
-
-**Confirmed policy state: On:**
-
 ![MFA policy on](MFA_policy_is_on.png)
 
----
+### 3. Blocked sign ins from outside Sweden and the EU
 
-## Step 3 — Conditional Access: Block Sign-in from Outside Sweden/EU
-
-Added a second policy, **"Block sign-in from outside EU"**, to restrict access based on location. Since I don't have a way to genuinely spoof my geolocation, I built and validated this policy logic using the **What If** simulation tool rather than a live sign-in attempt (see Step 4).
-
-Both policies together represent a layered access model: MFA everywhere, plus a hard location-based block for out-of-region sign-ins.
-
-**Both policies listed and enabled:**
+Next I added a second policy to block sign ins coming from outside Sweden and the EU. The idea is that if someone's stolen credentials get used from a country the company has no business in, the system blocks it automatically instead of relying on someone noticing later.
 
 ![Policy list](Policy_List.png)
 
----
+### 4. Tested the policies before trusting them
 
-## Step 4 — Validating Policies with the "What If" Tool
+A policy that looks right in the settings screen isn't the same as a policy that actually works. So I used Entra's built in What If tool, which lets you simulate a sign in for a specific user, location, or app and see exactly which policies would kick in, without needing a real person to actually try signing in from another country.
 
-Used Entra's **Conditional Access "What If"** tool to simulate sign-in scenarios and confirm the policies actually trigger as expected, without needing a real sign-in attempt from another country.
+For the first test, I simulated a sign in from an IP address in Brazil. Both policies correctly triggered. MFA was required, and the location based block also applied.
 
-**Test 1 — Simulated sign-in from Brazil:**
-Input: IP `190.25.30.45`, Country: Brazil. Result: both policies evaluated as **applying** — "Require MFA for all users" and "Block sign-in from outside EU" — confirming the location-based block would correctly catch an out-of-region sign-in.
+![What if Brazil test](Testing__1__-_What_if__Policy_.png)
 
-![What-if Brazil test](Testing__1__-_What_if__Policy_.png)
+For the second test, I simulated a sign in for a specific user, Hakeem Saafo, on a specific device and app, to double check the policies were scoped correctly and not accidentally too broad or too narrow.
 
-**Test 2 — Simulated sign-in for a specific user/app:**
-Input: user Hakeem Saafo, device platform Windows, client app "Mobile apps and desktop clients," target app Azure AD Notification. Used to confirm policy scope and targeting logic against a real user/app combination.
+![What if user test](Testing_-_What_if__policy_.png)
 
-![What-if user test](Testing_-_What_if__policy_.png)
+This step matters because it's the difference between saying I configured a policy and actually proving the policy does what I think it does, which is easy to skip and easy to get wrong.
 
----
+### 5. Set up time limited admin access with PIM
 
-## Step 5 — PIM for the IT-Admins Group
+Standing admin access, where someone always has elevated permissions whether they're using them or not, is a real risk. If that account gets compromised, the attacker instantly has admin rights too.
 
-Configured **Privileged Identity Management (PIM)** to enforce just-in-time, approval-gated access to the **Security Reader** role for the IT-Admins group, rather than granting the role permanently.
+Instead I used Privileged Identity Management, or PIM, to set up the IT-admins group so nobody holds the Security Reader role permanently. They have to request the role and explain why they need it, get that request approved by someone else, and only then get the role activated, and only for a limited window of up to eight hours, after which it automatically expires.
 
-Role settings configured:
-- **Activation maximum duration:** 8 hours
-- **Require justification on activation:** enabled
-- **Require approval to activate:** enabled, with **IT Admins** set as the approver group
-- Assignment type: **Eligible** (not permanently active) — role must be manually activated when needed
-
-**Role setting: 8-hour max duration, justification + approval required:**
+I configured the role settings first.
 
 ![PIM role settings](Setting_Assignment_duration___Requiring_approval_upon_acitivations.png)
-
-**Eligible assignments for Security Reader:**
-
 ![Security Reader eligible assignments](Assigned_Security_Reader_to_IT-admins.png)
 
-![Security Reader eligible assignments 2](Assigned_Security_Reader_to_IT_Admins.png)
-
-**Workflow demonstrated end-to-end:**
-
-1. Assigned the **Security Reader** role as an *eligible* assignment to the IT-Admins group
-2. A user (Sara Farah) requested activation, providing a justification: *"Investigating Conditional Access and sign-in logs following suspicious sign-in report, need read access to review configuration and audit logs"*
+Then I walked through the actual request from start to finish. A user, Sara Farah, requested the role with a real justification, investigating Conditional Access and sign in logs following a suspicious sign in report, which is the kind of reason a SOC analyst would genuinely write during an investigation.
 
 ![Activation request](Assignment_Activation_Request.png)
 
-3. The request appeared in the **Approve requests** queue and was approved
+The request landed in an approval queue and was approved.
 
 ![Approved request](Approve_Assignment_Request.png)
 
-4. Once approved, the role became **active** for a time-boxed window (start/end time logged), after which it automatically expires and access is revoked
+Only after approval did the role actually become active, with a start and end time attached.
 
 ![Final assignment list](Assignment_List.png)
 
-This reflects a least-privilege model: nobody holds standing admin/reader access — it's requested, justified, approved, and time-limited.
+### 6. Simulated an employee leaving the company
 
----
+Access doesn't just need to be granted correctly. It needs to be removed correctly too, and quickly, when someone leaves. I simulated one of my test users, Moa Ali, leaving the company and being offboarded.
 
-## Step 6 — Mock JML: Offboarding "Moa Ali"
-
-Simulated an employee leaving the organization and walked through the deprovisioning steps a real offboarding process would require.
-
-**Scenario:** Moa Ali, a member of the Finance-Users group, leaves the company.
-
-**Before state:** Moa Ali is an active member of the **Finance-users** group (3 members total: Aya Marwan, Hakeem Saafo, Moa Ali)
+Before offboarding, Moa Ali was still an active member of the Finance-users group, with normal access.
 
 ![Finance users before](Finance_User_List.png)
 
-**Step A — Disabled the account** in Entra ID. This immediately blocks sign-in and ends any active sessions across Microsoft services, while preserving the account and its data (no deletion, so mail/data can still be reviewed or handed over during the transition).
+The first step was to disable sign in immediately. This is the fastest way to stop someone from accessing anything, even before there's been time to clean up every group and permission they had. It also doesn't delete their account or mailbox, which matters if the company still needs to review old files or emails during the handover.
 
-![Disabling sign-in](Blocking_Moa_Ali_from_signing_in_-_Offboarding.png)
-
+![Disabling sign in](Blocking_Moa_Ali_from_signing_in_-_Offboarding.png)
 ![Account disabled status](Account_Disabled_-_Moa_Ali.png)
 
-**Step B — Removed Moa Ali from the Finance-Users group**, revoking the group-based access that came with that role.
+The second step was removing them from their groups. Once sign in was blocked, I removed Moa Ali from Finance-users, which strips the access tied to that role.
 
-**After state:** Finance-users group now shows only 2 members (Aya Marwan, Hakeem Saafo) — Moa Ali's access has been fully deprovisioned.
+Afterward, the group only shows the two people who should still have access.
 
 ![Finance users after](Moa_Ali_removed_from_Finance_Users_Group.png)
 
-This mirrors a standard leaver checklist: disable sign-in first (immediate containment), then clean up group/role memberships (formal deprovisioning), while keeping the account itself intact for a defined retention period rather than deleting it outright.
+In a real company, this whole sequence would usually be triggered automatically the moment HR marks someone as terminated, rather than someone manually clicking through it. What I did here shows the actual mechanics of what that automation would be performing behind the scenes.
 
----
+## What skill does this prove?
 
-## Key Takeaways
+This project shows Conditional Access policy design, including building rules that require MFA and restrict access by location. It shows testing before trusting, using the What If tool to verify policies actually behave as intended instead of just assuming they do. It shows least privilege thinking through PIM, where nobody holds standing admin rights and access has to be requested, justified, approved, and time limited. And it shows an understanding of offboarding, disabling access immediately and removing group membership in the right order.
 
-- **Conditional Access** is where identity and risk-based policy actually meet — MFA enforcement and location-based restrictions are two of the most common controls an org will have in place, and the "What If" tool is genuinely useful for testing policy logic safely before it affects real users.
-- **PIM** turns "who has admin rights" into "who can request admin rights, for how long, and with whose approval" — a meaningfully different (and more secure) access model than standing permissions.
-- Offboarding isn't a single action — it's a sequence: contain (disable sign-in) → revoke (remove from groups/roles) → retain (don't delete immediately, in case of legal/audit needs).
+## How does this apply in a real SOC or security team?
 
-## Notes
+This is, in plain terms, the work of stopping a stolen password from becoming a full breach. Most attackers don't need to hack their way in, they just need one set of working credentials. A missing MFA policy, a permanent admin account, or a leaver who never got properly offboarded are exactly the kind of gaps that show up in breach reports afterward. Getting these basics right, and being able to prove they work rather than just assuming they're configured, is a big part of what keeps an organization off that list.
 
-This was built in a personal Entra ID test tenant for learning purposes, not a production environment. Screenshots have some fields redacted (UPNs, object identities) for privacy.
+## Policy to threat mapping
+
+| Control | Threat it mitigates |
+|---|---|
+| Require MFA for all users | Stolen or guessed passwords being enough on their own to log in |
+| Block sign in from outside EU | Credentials being used from a country the company has no legitimate reason to sign in from |
+| PIM for admin access | A compromised account automatically having standing admin rights |
+| Offboarding process | Former employees retaining access after they've left |
+
+## Notes on what was tested versus simulated
+
+The MFA and location policies were both set to Report only first, checked, and then switched to fully On. This mirrors how a real company would roll out a policy, so people don't get locked out by accident. I don't have a way to genuinely fake my location from another country, so the location block policy was validated using the What If simulation tool rather than a real sign in attempt from abroad, and that's stated here plainly rather than implied to be a live test. This was all built in a personal Entra ID test tenant for learning purposes, not a production environment. Some screenshot fields, like usernames, are partially blurred for privacy.
