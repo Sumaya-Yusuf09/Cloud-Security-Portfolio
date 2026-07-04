@@ -75,3 +75,6 @@ For offboarding I did both the group removal and the account disable, not just o
 ## How to try this yourself
 
 You will need an Azure subscription (used the free tier) with Entra ID and at least an Entra ID P2 license (Used free trail), since PIM requires P2. Create your own test users and two groups the same way I did, then build the two Conditional Access policies under Security, Conditional Access. Test them with the What If tool before trusting them. Set up PIM under Privileged Identity Management by making a role eligible for a group instead of assigning it directly, and turn on approval and justification requirements in the role settings. For the offboarding part, just remove a test user from a group and disable their account, change password, pull any licenses and assignments then double check that the changes actually took effect.
+
+## Tools used
+Microsoft Entra ID, Conditional Access, Privileged Identity Management, and Microsoft Entra groups.
