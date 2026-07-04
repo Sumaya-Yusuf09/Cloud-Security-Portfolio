@@ -62,18 +62,16 @@ Finally I checked the account to confirm it actually shows as disabled.
 
 ![Confirming the account status is disabled](Step%2015.%20Check%20If%20Moa%20Ali%20Account%20Disabled.png)
 
+In a full offboarding you would also pull any licenses since those cost money whether someone is using them or not, remove any PIM role assignments or app permissions Moa still had, and reset the password on top of disabling the account so that even if the account got turned back on by mistake later, the old password would be useless.
+
 ## Why I made these choices
 
 I used Conditional Access instead of just turning on basic security defaults because Conditional Access lets you build layered, specific rules like combining MFA with location, and that is closer to how a real company would actually configure this.
 
 I chose PIM with required approval and time limits instead of just giving IT Admins the role permanently, because permanent admin access sitting unused is one of the easiest things for an attacker to exploit if any single admin account gets compromised. Making it eligible and time boxed massively shrinks that window of risk.
 
-For offboarding I did both the group removal and the account disable, not just one of them, because relying on only one of those steps is exactly how companies end up with ex employees who still technically have access somewhere.
+For offboarding I did both the group removal and the account disable, not just one of them, because relying on only one of those steps is exactly how companies end up with ex employees who still technically have access somewhere. In hindsight the tighter order would have been to disable the account first and clean up the group after, since disabling closes the door completely and instantly, so even if a group or permission gets missed the person still cannot get in. Doing it the other way round still gets to the same end result, it just leaves a tiny window open while the cleanup happens. Then I also checked for any licenses, since those cost money whether someone is using them or not, removed any PIM role assignments or app permissions Sara still had, and reset the password on top of disabling the account, so that even if the account got switched back on by mistake later, the old password would be useless.
 
 ## How to try this yourself
 
-You will need an Azure subscription with Entra ID and at least an Entra ID P2 license, since PIM requires P2. Create your own test users and two groups the same way I did, then build the two Conditional Access policies under Security, Conditional Access. Test them with the What If tool before trusting them. Set up PIM under Privileged Identity Management by making a role eligible for a group instead of assigning it directly, and turn on approval and justification requirements in the role settings. For the offboarding part, just remove a test user from a group and disable their account, then double check both changes actually took effect.
-
-## What is next
-
-Project 2 is a serverless security alerting pipeline using Defender for Cloud, Logic Apps, and Key Vault. Project 3 will rebuild this same setup using Terraform, and Project 4 will wrap it into a CI/CD pipeline.
+You will need an Azure subscription (used the free tier) with Entra ID and at least an Entra ID P2 license (Used free trail), since PIM requires P2. Create your own test users and two groups the same way I did, then build the two Conditional Access policies under Security, Conditional Access. Test them with the What If tool before trusting them. Set up PIM under Privileged Identity Management by making a role eligible for a group instead of assigning it directly, and turn on approval and justification requirements in the role settings. For the offboarding part, just remove a test user from a group and disable their account, change password, pull any licenses and assignments then double check that the changes actually took effect.
