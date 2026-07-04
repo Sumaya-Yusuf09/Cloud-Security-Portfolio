@@ -11,7 +11,7 @@ I am not claiming this is a full production setup for a real company. It is a la
 **Test users and groups**
 I created several test users and two security groups, IT Admins and Finance Users, so I would have a realistic setup to apply policies to instead of just testing on my own account.
 
-![Users created in Entra ID](screenshots/Step_1__User_Created-Azure.png)
+![Users created in Entra ID](Step_1_User_Created-Azure.png)
 ![Groups created in Entra ID](screenshots/Step_2__Groups_Created-Azure.png)
 
 **Forcing MFA for everyone**
