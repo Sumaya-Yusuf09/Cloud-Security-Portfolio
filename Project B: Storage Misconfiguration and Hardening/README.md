@@ -2,20 +2,17 @@
 
 ## Tools Used
 
-- PowerShell
-- Azure Portal
-- Azure Blob Storage
-- Azure Monitor and Log Analytics
+`WIndows PowerShell` `Azure Portal` `Azure Storage Account` `Azure Blob Storage` `Azure Log Analytics`
 
 ## Why this project, right now
 
-On July 8, 2026, Accenture confirmed a security incident after a threat actor claimed to have stolen about 35GB of source code, RSA and SSH keys, Azure personal access tokens, and Azure Storage access keys, reportedly taken from an exposed Azure DevOps repository. You can read the coverage here: [Accenture acknowledges security incident following 35GB data theft claim](https://www.helpnetsecurity.com/2026/07/08/accenture-data-breach-2026/).
+On July 2026, Accenture confirmed a security incident after a threat actor claimed to have stolen about 35GB of source code, RSA and SSH keys, Azure personal access tokens, and Azure Storage access keys, reportedly taken from an exposed Azure DevOps repository. You can read the coverage here: [Accenture acknowledges security incident following 35GB data theft claim](https://www.helpnetsecurity.com/2026/07/08/accenture-data-breach-2026/).
 
 Here is the part that actually matters if you are not technical at all. Nobody hacked their way in with some clever trick. A storage location that should have stayed private was reachable by anyone who found the address, the same way a filing cabinet left unlocked in an empty office is reachable by anyone who wanders in. That is the whole story. And Accenture, a company whose entire business is helping other companies stay secure, has now had this exact type of incident twice, once in 2017 with four open AWS buckets, and again in 2026. That repetition is the real lesson here. This is not a beginner mistake that only happens to small, careless teams. It happens to companies with enormous security budgets, because the mistake is boring and easy to miss, not because it is hard to understand.
 
 This project recreates that exact mechanism on a small, controlled scale. I deliberately left an Azure storage container open the same way, proved from outside my own account that it was genuinely reachable, then closed it properly and proved that too.
 
-## What I built and how it all connects
+## What I built 
 
 Everything below follows one thread from start to finish. Open the door. Prove it is actually open by walking through it myself, from the outside. Close the door properly. Prove it is actually closed. Then build a smarter way back in for the one person who might legitimately need it, instead of leaving the door sealed forever or propped open for everyone.
 
@@ -29,7 +26,7 @@ az group create --name rg-storagehardening --location northeurope
 az storage account create --name projectb20 --resource-group rg-storagehardening --location northeurope --sku Standard_LRS --allow-blob-public-access true
 ```
 
-That last flag, `--allow-blob-public-access true`, is the master switch for the whole account. Every container inside a storage account inherits this setting as a ceiling. If it is off, nothing inside can ever be made public no matter what you do at the container level. I turned it on deliberately here, since the entire point of this project is to walk through what happens when that switch gets left in the wrong position, which is exactly the kind of thing that happens by accident during a rushed setup in a real company.
+That last flag, `--allow-blob-public-access true`, is the switch for the whole account. Every container inside a storage account inherits this setting as a ceiling. If it is off, nothing inside can ever be made public no matter what you do at the container level. I turned it on deliberately here, since the entire point of this project is to walk through what happens when that switch gets left in the wrong position, which is exactly the kind of thing that happens by accident during a rushed setup in a real company.
 
 With that switch flipped on, I created the actual container and set it to public.
 
@@ -51,7 +48,7 @@ I uploaded a small test file so there would be something real to actually test a
 az storage blob upload --account-name projectb20 --container-name testdata --name testfile.txt --file testfile.txt
 ```
 
-Then came the part that actually proves something, rather than just describing a setting. I copied the file's public address and opened it in a private browser window that had never logged into my Azure account at all.
+Then came the part to double check it, rather than just describing a setting. I copied the file's public address and opened it in a private browser window that had never logged into my Azure account at all.
 
 ```
 az storage blob url --account-name projectb20 --container-name testdata --name testfile.txt -o tsv
@@ -59,7 +56,7 @@ az storage blob url --account-name projectb20 --container-name testdata --name t
 
 ![File loading with no authentication](Step_2__Open_the_file_in_a_cognito_browser.PNG)
 
-The file loaded instantly. No password, no warning, nothing standing between an anonymous browser and the file's contents. This is precisely what the Accenture story looked like from the outside, minus the actual damage, since I control both the door and everything sitting behind it.
+The file loaded instantly. Without asking for any password, or showing any warning, nothing standing between an anonymous browser and the file's contents. This is precisely what the Accenture story looked like from the outside, minus the actual damage, since I control both the door and everything sitting behind it.
 
 Closing it back up meant reversing that same switch at both levels, not just one.
 
@@ -89,13 +86,13 @@ az monitor log-analytics workspace create --resource-group rg-storagehardening -
 
 Encryption protects the data itself if someone ever reached the underlying disk directly. Logging protects something different, visibility, meaning any future attempt to touch this account, whether it succeeds or gets rejected, actually leaves a trace somewhere reviewable instead of vanishing into nothing.
 
-Then I went back to test the fix the same honest way I tested the original exposure, same file, same private browser window, same URL from before.
+Then I went back to test the fix the same way I tested the original exposure, same file, same private browser window, same URL from before.
 
 ![Access denied after the fix](Step_6__Re-testing_the_exposure_to_confirm_the_fix_actually_worked.PNG)
 
 Trusting that a portal setting says "off" is not the same as watching the actual behavior change from the outside. This time the platform itself refused the request outright, with an error that confirms it is actively blocking access, not just displaying a setting that looks correct.
 
-The last real decision in this project was what to do once the door was properly shut. I could have left it sealed completely, no way in for anyone, ever. That is the simplest option, but it is not how real teams actually operate, since there is almost always a legitimate reason someone needs to reach a specific file eventually, and a permanently sealed system just pushes people toward bad workarounds, like quietly turning public access back on out of frustration. The better option is a narrow, temporary opening built for exactly one purpose, so I generated a Shared Access Signature scoped to read only, on this one file, expiring on a fixed date rather than staying valid indefinitely.
+The last real decision in this project was what to do once the door was properly shut. I could have left it sealed completely, no way in for anyone, ever. That is the simplest option, but it is likely that's not how real teams actually operate, since there is almost always a legitimate reason someone needs to reach a specific file eventually, and a permanently sealed system just pushes people toward bad workarounds, like quietly turning public access back on out of frustration. The better option is a narrow, temporary opening built for exactly one purpose, so I generated a Shared Access Signature scoped to read only, on this one file, expiring on a fixed date rather than staying valid indefinitely.
 
 ```
 az storage blob generate-sas --account-name projectb20 --container-name testdata --name testfile.txt --permissions r --expiry 2026-08-01T00:00Z
@@ -107,7 +104,7 @@ That command only prints the permission string, not a full working link, so I at
 
 ![SAS URL working](Step_8__Check_if_the_SAS_URL_works_from_step_8_.PNG)
 
-The regular public address still fails exactly like it did after I locked things down. This signed link works, but only for reading, and only until the date I set. Closed by default, open only through something deliberately handed out, scoped, and temporary. That is the actual ending of the story this whole project is telling.
+The regular public address still fails exactly like it did after I locked things down. This signed link works, but only for reading, and only until the date I set. Closed by default, open only through something deliberately handed out, scoped, and temporary. And that is the ending of this whole project.
 
 Finally, I deleted everything.
 
@@ -123,7 +120,7 @@ Nothing actually broke while building this one, so rather than inventing struggl
 
 ## How to do this yourself
 
-1. Set up an Azure subscription and open PowerShell.
+1. Set up a free Azure subscription and open Windows PowerShell.
 2. Create a resource group and a storage account, setting `--allow-blob-public-access true` on the account.
 3. Create a container inside it with `--public-access blob`.
 4. Upload a clearly labeled test file, nothing sensitive.
