@@ -4,7 +4,7 @@ Hi, I'm Sumaya. This is where I build and document real, hands on Azure security
 
 ## Projects
 
-**[Project 1: Identity and Access Management in Microsoft Entra ID](<Project%201%20-%20Identity%20Access%20Management>)**
+**[Project A: Identity and Access Management in Microsoft Entra ID](<Project%201%20-%20Identity%20Access%20Management>)**
 Built out Conditional Access policies requiring MFA and blocking sign in from outside the EU, tested them with the What If tool, set up time limited admin access through Privileged Identity Management, and ran through a full employee offboarding from group removal to account disable.
 
 **[Project B: Storage Misconfiguration and Hardening](<Project%20B%3A%20Storage%20Misconfiguration%20and%20Hardening>)**
