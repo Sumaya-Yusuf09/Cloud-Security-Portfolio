@@ -34,7 +34,7 @@ With that switch flipped on, I created the actual container and set it to public
 az storage container create --name testdata --account-name projectb20 --public-access blob
 ```
 
-![Storage account created](Screenshotss/Step%201.%20Create%20the%20resource%20group%20and%20storage%20account.png)
+![Storage account created](screenshots/Step%201.%20Create%20the%20resource%20group%20and%20storage%20account.png)
 
 This single flag is the real misconfiguration. It is the difference between a folder only you can open and a folder anyone with the link can open, and it looks like a harmless, quick setting to someone moving fast.
 
