@@ -34,7 +34,7 @@ With that switch flipped on, I created the actual container and set it to public
 az storage container create --name testdata --account-name projectb20 --public-access blob
 ```
 
-![Storage account created](screenshotss/Step_1__Create_the_resource_group_and_storage_account.png)
+![Storage account created](Screenshotss/Step%201.%20Create%20the%20resource%20group%20and%20storage%20account.png)
 
 This single flag is the real misconfiguration. It is the difference between a folder only you can open and a folder anyone with the link can open, and it looks like a harmless, quick setting to someone moving fast.
 
@@ -54,7 +54,7 @@ Then came the part to double check it, rather than just describing a setting. I 
 az storage blob url --account-name projectb20 --container-name testdata --name testfile.txt -o tsv
 ```
 
-![File loading with no authentication](screenshotss/Step_2__Open_the_file_in_a_cognito_browser.PNG)
+![File loading with no authentication](Screenshotss/Step%202.%20Open%20the%20file%20in%20a%20cognito%20browser.PNG)
 
 The file loaded instantly. Without asking for any password, or showing any warning, nothing standing between an anonymous browser and the file's contents. This is precisely what the Accenture story looked like from the outside, minus the actual damage, since I control both the door and everything sitting behind it.
 
@@ -72,7 +72,7 @@ I could have only changed the container's own setting and left the account level
 
 Encryption at rest is on by default in Azure, but I checked it directly in the portal rather than assuming.
 
-![Encryption confirmed](screenshotss/Step_3__Confirm_Encryption.png)
+![Encryption confirmed](Screenshotss/Step%203.%20Confirm%20Encryption.png)
 
 Logging took a bit more digging than I expected. The account's general diagnostic settings page only offers a generic transaction count, nothing that actually shows who read, wrote, or deleted anything. That specific detail lives one level deeper, scoped to the blob service itself rather than the account as a whole.
 
@@ -80,15 +80,15 @@ Logging took a bit more digging than I expected. The account's general diagnosti
 az monitor log-analytics workspace create --resource-group rg-storagehardening --workspace-name law-storagehardening --location northeurope
 ```
 
-![Blob logging configured](screenshotss/Step_4__Enabling_blob_read_write_delete_logging_to_Log_Analytics.png)
+![Blob logging configured](Screenshotss/Step%204.%20Enabling%20blob%20read%20write%20delete%20logging%20to%20Log%20Analytics.png)
 
-![Diagnostics status confirmed](screenshotss/Step_5__Show_logging_enabled_on_Diagnostic_Settings_page.png)
+![Diagnostics status confirmed](Screenshotss/Step%205.%20Show%20logging%20enabled%20on%20Diagnostic%20Settings%20page.png)
 
 Encryption protects the data itself if someone ever reached the underlying disk directly. Logging protects something different, visibility, meaning any future attempt to touch this account, whether it succeeds or gets rejected, actually leaves a trace somewhere reviewable instead of vanishing into nothing.
 
 Then I went back to test the fix the same way I tested the original exposure, same file, same private browser window, same URL from before.
 
-![Access denied after the fix](screenshotss/Step_6__Re-testing_the_exposure_to_confirm_the_fix_actually_worked.PNG)
+![Access denied after the fix](Screenshotss/Step%206.%20Re-testing%20the%20exposure%20to%20confirm%20the%20fix%20actually%20worked.PNG)
 
 Trusting that a portal setting says "off" is not the same as watching the actual behavior change from the outside. This time the platform itself refused the request outright, with an error that confirms it is actively blocking access, not just displaying a setting that looks correct.
 
@@ -98,11 +98,11 @@ The last real decision in this project was what to do once the door was properly
 az storage blob generate-sas --account-name projectb20 --container-name testdata --name testfile.txt --permissions r --expiry 2026-08-01T00:00Z
 ```
 
-![SAS token generated](screenshotss/Step_7__Apply_least_privilege_for_ligitimate_access.webp)
+![SAS token generated](Screenshotss/Step%207.%20Apply%20least%20privilege%20for%20ligitimate%20access.webp)
 
 That command only prints the permission string, not a full working link, so I attached it to the blob's normal address with a question mark in between, the same way any web address carries extra instructions after that symbol.
 
-![SAS URL working](screenshotss/Step_8__Check_if_the_SAS_URL_works_from_step_8_.PNG)
+![SAS URL working](Screenshotss/Step%208.%20Check%20if%20the%20SAS%20URL%20works%20from%20step%208..PNG)
 
 The regular public address still fails exactly like it did after I locked things down. This signed link works, but only for reading, and only until the date I set. Closed by default, open only through something deliberately handed out, scoped, and temporary. And that is the ending of this whole project.
 
