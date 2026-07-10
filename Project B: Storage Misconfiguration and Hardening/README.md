@@ -2,17 +2,23 @@
 
 ## Tools Used
 
-`WIndows PowerShell` `Azure Portal` `Azure Storage Account` `Azure Blob Storage` `Azure Log Analytics`
+`Windows PowerShell` `Azure Portal` `Azure Storage Account` `Azure Blob Storage` `Azure Log Analytics`
 
-## Why this project, right now
+## Why this project
 
-On July 2026, Accenture confirmed a security incident after a threat actor claimed to have stolen about 35GB of source code, RSA and SSH keys, Azure personal access tokens, and Azure Storage access keys, reportedly taken from an exposed Azure DevOps repository. You can read the coverage here: [Accenture acknowledges security incident following 35GB data theft claim](https://www.helpnetsecurity.com/2026/07/08/accenture-data-breach-2026/).
+On June 13, 2026, One Medical found out someone had gotten into old storage holding archived patient records from a practice they bought five years earlier. The actual access happened days before that, between June 8 and June 11. The group behind it said they took 8.8 terabytes and threatened to leak it. Read about it here: [2026 Data Breaches: Cybersecurity Incidents Explained](https://www.pkware.com/blog/2026-data-breaches).
 
-Here is the part that actually matters if you are not technical at all. Nobody hacked their way in with some clever trick. A storage location that should have stayed private was reachable by anyone who found the address, the same way a filing cabinet left unlocked in an empty office is reachable by anyone who wanders in. That is the whole story. And Accenture, a company whose entire business is helping other companies stay secure, has now had this exact type of incident twice, once in 2017 with four open AWS buckets, and again in 2026. That repetition is the real lesson here. This is not a beginner mistake that only happens to small, careless teams. It happens to companies with enormous security budgets, because the mistake is boring and easy to miss, not because it is hard to understand.
+What happened is simple. Old data, from an old system, nobody was checking anymore. Not a clever hack. Just files sitting somewhere unwatched because nobody used them day to day.
 
-This project recreates that exact mechanism on a small, controlled scale. I deliberately left an Azure storage container open the same way, proved from outside my own account that it was genuinely reachable, then closed it properly and proved that too.
+The exposed records included clinical data on elderly patients, the kind of information that enables Medicare fraud and can never really be changed once it's out.
 
-## What I built 
+The business outcome is what makes this expensive, not just embarrassing. Mandatory breach notifications to every patient affected. Regulators asking questions. Lawyers involved. And patients losing trust in a company that couldn't say why their decade old medical file was still sitting in an unprotected system at all.
+
+The lesson any business can actually use is this. Data doesn't stop being your responsibility just because you stopped using it. If nobody is checking a system, that's exactly the system that needs checking most.
+
+This project recreates that same mechanism on a small scale. I left an Azure storage container open, proved from the outside it was actually reachable, then closed it and proved that too.
+
+## What I built
 
 Everything below follows one thread from start to finish. Open the door. Prove it is actually open by walking through it myself, from the outside. Close the door properly. Prove it is actually closed. Then build a smarter way back in for the one person who might legitimately need it, instead of leaving the door sealed forever or propped open for everyone.
 
@@ -26,7 +32,7 @@ az group create --name rg-storagehardening --location northeurope
 az storage account create --name projectb20 --resource-group rg-storagehardening --location northeurope --sku Standard_LRS --allow-blob-public-access true
 ```
 
-That last flag, `--allow-blob-public-access true`, is the switch for the whole account. Every container inside a storage account inherits this setting as a ceiling. If it is off, nothing inside can ever be made public no matter what you do at the container level. I turned it on deliberately here, since the entire point of this project is to walk through what happens when that switch gets left in the wrong position, which is exactly the kind of thing that happens by accident during a rushed setup in a real company.
+That last flag, `--allow-blob-public-access true`, is the switch for the whole account. Every container inside a storage account inherits this setting as a ceiling. If it is off, nothing inside can ever be made public no matter what happens at the container level. I turned it on deliberately here, since the entire point of this project is to walk through what happens when that switch gets left in the wrong position. This is exactly the kind of setting that gets flipped on during a rushed setup and then forgotten, the same way One Medical's legacy archive was almost certainly configured once, years ago, by someone who moved on to other work long before anyone checked it again.
 
 With that switch flipped on, I created the actual container and set it to public.
 
@@ -36,7 +42,7 @@ az storage container create --name testdata --account-name projectb20 --public-a
 
 ![Storage account created](screenshots/Step%201.%20Create%20the%20resource%20group%20and%20storage%20account.png)
 
-This single flag is the real misconfiguration. It is the difference between a folder only you can open and a folder anyone with the link can open, and it looks like a harmless, quick setting to someone moving fast.
+This single flag is the real misconfiguration. It is the difference between a folder only you can open and a folder anyone with the link can open. The consequence of leaving it on is not immediate, nothing visibly breaks the day you set it. The consequence shows up later, quietly, the exact way it did for One Medical, where the exposure sat for days before anyone even knew to look.
 
 I uploaded a small test file so there would be something real to actually test against.
 
@@ -48,7 +54,7 @@ I uploaded a small test file so there would be something real to actually test a
 az storage blob upload --account-name projectb20 --container-name testdata --name testfile.txt --file testfile.txt
 ```
 
-Then came the part to double check it, rather than just describing a setting. I copied the file's public address and opened it in a private browser window that had never logged into my Azure account at all.
+Then came the part that actually proves something, rather than just describing a setting. I copied the file's public address and opened it in a private browser window that had never logged into my Azure account at all.
 
 ```
 az storage blob url --account-name projectb20 --container-name testdata --name testfile.txt -o tsv
@@ -56,7 +62,7 @@ az storage blob url --account-name projectb20 --container-name testdata --name t
 
 ![File loading with no authentication](screenshots/Step%202.%20Open%20the%20file%20in%20a%20cognito%20browser.PNG)
 
-The file loaded instantly. Without asking for any password, or showing any warning, nothing standing between an anonymous browser and the file's contents. This is precisely what the Accenture story looked like from the outside, minus the actual damage, since I control both the door and everything sitting behind it.
+The file loaded instantly. No password, no warning, nothing standing between an anonymous browser and the file's contents. The consequence of this exact situation, at real scale, with real patient data instead of a test sentence, is what actually happened at One Medical, an outside party reaching data that should have required authorization at every step.
 
 Closing it back up meant reversing that same switch at both levels, not just one.
 
@@ -68,9 +74,9 @@ az storage account update --name projectb20 --resource-group rg-storagehardening
 az storage container set-permission --name testdata --account-name projectb20 --public-access off
 ```
 
-I could have only changed the container's own setting and left the account level flag turned on. That would have closed this specific container while leaving the master switch itself still open, meaning the very next container anyone creates in this account could just as easily end up exposed again without anyone noticing. Turning the account level flag off as well closes that entire category of mistake permanently, not just this one instance of it. That is the stronger fix, and it is the one I chose.
+I could have only changed the container's own setting and left the account level flag turned on. That would have closed this specific container while leaving the master switch itself still open, meaning the next container anyone creates in this account could just as easily end up exposed again without anyone noticing, the same blind spot that let a five year old archive sit unreviewed. Turning the account level flag off as well closes that entire category of mistake permanently, not just this one instance of it. The consequence of only fixing the symptom instead of the actual cause is that the same failure can quietly happen again somewhere else in the same account, which is exactly how forgotten systems stay forgotten. That is the stronger fix, and it is the one I chose.
 
-Encryption at rest is on by default in Azure, but I checked it directly in the portal rather than assuming.
+Encryption at rest is on by default in Azure, but I checked it directly in the portal rather than assuming it.
 
 ![Encryption confirmed](screenshots/Step%203.%20Confirm%20Encryption.png)
 
@@ -84,15 +90,15 @@ az monitor log-analytics workspace create --resource-group rg-storagehardening -
 
 ![Diagnostics status confirmed](screenshots/Step%205.%20Show%20logging%20enabled%20on%20Diagnostic%20Settings%20page.png)
 
-Encryption protects the data itself if someone ever reached the underlying disk directly. Logging protects something different, visibility, meaning any future attempt to touch this account, whether it succeeds or gets rejected, actually leaves a trace somewhere reviewable instead of vanishing into nothing.
+Encryption protects the data itself if someone ever reached the underlying disk directly. Logging protects something different, visibility. One Medical was only able to say the access happened between June 8 and June 11 because some form of monitoring existed to establish that window. Without logging, a company in that position cannot even answer the most basic question a regulator or an affected patient will ask, when did this actually happen and what exactly was touched. The consequence of skipping this step is not just a technical gap, it becomes a legal and communication problem the moment anyone needs real answers.
 
 Then I went back to test the fix the same way I tested the original exposure, same file, same private browser window, same URL from before.
 
 ![Access denied after the fix](screenshots/Step%206.%20Re-testing%20the%20exposure%20to%20confirm%20the%20fix%20actually%20worked.PNG)
 
-Trusting that a portal setting says "off" is not the same as watching the actual behavior change from the outside. This time the platform itself refused the request outright, with an error that confirms it is actively blocking access, not just displaying a setting that looks correct.
+Trusting that a portal setting says off is not the same as watching the actual behavior change from the outside. This time the platform itself refused the request outright, with an error confirming it is actively blocking access, not just displaying a setting that looks correct.
 
-The last real decision in this project was what to do once the door was properly shut. I could have left it sealed completely, no way in for anyone, ever. That is the simplest option, but it is likely that's not how real teams actually operate, since there is almost always a legitimate reason someone needs to reach a specific file eventually, and a permanently sealed system just pushes people toward bad workarounds, like quietly turning public access back on out of frustration. The better option is a narrow, temporary opening built for exactly one purpose, so I generated a Shared Access Signature scoped to read only, on this one file, expiring on a fixed date rather than staying valid indefinitely.
+The last real decision in this project was what to do once the door was properly shut. I could have left it sealed completely, no way in for anyone, ever. That mirrors what probably should have happened to One Medical's legacy archive years ago, since nobody needed regular access to it at all. But most storage does eventually need a legitimate reason for someone to reach it, and a permanently sealed system with no accommodation for that just pushes people toward bad workarounds, like quietly turning public access back on out of frustration. The better option is a narrow, temporary opening built for exactly one purpose, so I generated a Shared Access Signature scoped to read only, on this one file, expiring on a fixed date rather than staying valid indefinitely.
 
 ```
 az storage blob generate-sas --account-name projectb20 --container-name testdata --name testfile.txt --permissions r --expiry 2026-08-01T00:00Z
@@ -104,7 +110,7 @@ That command only prints the permission string, not a full working link, so I at
 
 ![SAS URL working](screenshots/Step%208.%20Check%20if%20the%20SAS%20URL%20works%20from%20step%208..PNG)
 
-The regular public address still fails exactly like it did after I locked things down. This signed link works, but only for reading, and only until the date I set. Closed by default, open only through something deliberately handed out, scoped, and temporary. And that is the ending of this whole project.
+The regular public address still fails exactly like it did after I locked things down. This signed link works, but only for reading, and only until the date I set. That balance is the whole point. Lock everything down with no way in and people find workarounds. Leave it open, or worse, forget about it like that old archive, and it becomes the next headline. Scoped, temporary access sits right in the middle.
 
 Finally, I deleted everything.
 
@@ -112,11 +118,11 @@ Finally, I deleted everything.
 az group delete --name rg-storagehardening --yes --no-wait
 ```
 
-Leaving pieces like an unused Log Analytics workspace sitting around after a project is finished is an easy, quiet way to keep paying for something nobody is using anymore, so I tore down the whole resource group at once rather than picking through it resource by resource.
+Leaving pieces like an unused Log Analytics workspace sitting around after a project is finished is an easy, quiet way to keep paying for something nobody is using anymore, and it is also a small scale version of the exact problem this whole project is about, resources that stop getting attention the moment they stop being actively used.
 
 ## What I would test further next time
 
-Nothing actually broke while building this one, so rather than inventing struggles I did not have, here is what I would genuinely add if I built it again. I would go into the Log Analytics workspace and confirm my own test requests actually show up as recorded events, rather than trusting that turning logging on was enough on its own, since configuring a control and confirming it is actually capturing data are two different claims. I would also generate the SAS token with a much shorter expiry, measured in hours instead of weeks, specifically for anything going into a public README, since a long lived signed link sitting in a public repository is technically a live credential for as long as it stays valid. And I would deliberately try turning public access back on afterward, just to watch the account level override actually block it, rather than only ever testing the fix once.
+Nothing actually broke while building this one, so rather than inventing struggles I did not have, here is what I would genuinely add if I built it again. I would go into the Log Analytics workspace and confirm my own test requests actually show up as recorded events, rather than trusting that turning logging on was enough on its own, since configuring a control and confirming it is actually capturing data are two different claims, and that gap is exactly what determines whether a company can answer basic questions during a real incident. I would also generate the SAS token with a much shorter expiry, measured in hours instead of weeks, specifically for anything going into a public README, since a long lived signed link sitting in a public repository is technically a live credential for as long as it stays valid. And I would deliberately try turning public access back on afterward, just to watch the account level override actually block it, rather than only ever testing the fix once.
 
 ## How to do this yourself
 
