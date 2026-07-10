@@ -1,8 +1,5 @@
 # Project A - Identity and Access Management in Microsoft Entra ID
 
-## Tools Used
-
-`Microsoft Entra ID` `Conditional Access` `Privileged Identity Management` `Azure Portal`
 
 ## Why this project
 
@@ -15,6 +12,10 @@ Charter reportedly knew in early April and did not confirm it publicly until lat
 The lesson here, one login should never be the only thing standing between an attacker and everything. If someone talks their way into an identity, there needs to be a second check in place, and a limit on what that identity can actually reach.
 
 This project builds both of those things. Multifactor Authentication (MFA) so a stolen password alone is not enough. Time limited admin access through Privileged Identity Management (PIM) so a compromised account never comes with standing privileges attached. And a real offboarding, since access has to actually get removed too, not just granted carefully.
+
+## Tools Used
+
+`Microsoft Entra ID` `Conditional Access` `Privileged Identity Management` `Azure Portal`
 
 ## What I built
 
