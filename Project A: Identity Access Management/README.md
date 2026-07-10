@@ -20,7 +20,9 @@ This project builds both of those things. Multifactor Authentication (MFA) so a 
 
 I started by creating test users and two groups, IT Admins and Finance Users, so I had a realistic setup rather than testing against my own single account.
 
-![Users created in Entra ID](Step%201.%20User_Created-Azure.png)
+![Storage account created](screenshots/Step%201.%20Create%20the%20resource%20group%20and%20storage%20account.png)
+
+![Users created in Entra ID](screenshots/Step%201.%20User_Created-Azure.png)
 ![Groups created in Entra ID](Step%202.%20Groups_Created-Azure.png)
 
 The first real control was Conditional Access requiring MFA for everyone. I excluded my own account while building it, so I would not accidentally lock myself out mid setup, a small precaution that matters more than it sounds like it should.
