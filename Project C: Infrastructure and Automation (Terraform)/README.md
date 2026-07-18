@@ -26,7 +26,7 @@ az storage container create --name tfstate --account-name sttfstate140726
 
 **Why it matters to a business.** If two people on a team ran Terraform from their own laptops with no shared state, they could each think they were the only one making changes, and end up overwriting each other's work without knowing it. Storing state remotely, in one shared place, is what makes Terraform safe to use in a team instead of just by one person alone.
 
-![Resource group with storage account and tfstate container](screenshots/step1-remote-state-container.png)
+![Resource group with storage account and tfstate container](screenshots/Step_1._Create_resource_group,_storage_acccount_and_storage_container.png)
 
 ---
 
