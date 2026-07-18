@@ -335,6 +335,13 @@ terraform destroy
 
 ---
 
-## What I would add next
+## What I would do differently next
 
-Looking at where this project stands right now, the next thing I would build is a small pipeline in GitHub Actions that automatically checks and previews any change to this infrastructure before it goes live, requiring someone to manually approve it before it actually applies. I would also add lifecycle rules to the storage account, so older logs automatically move to cheaper storage or get deleted after a set period instead of sitting there indefinitely. Finally, I would extend this same project into a second environment for staging, changing nothing but a handful of values in one file, to prove out loud that the reusability this project was built around actually holds up in practice.
+If I where to do this differently, I would set up remote state before writing any real resources, since that's a decision that should come first, not something to fix later.
+
+I would check the VM size and region availability before deploying, so I don't lose time on a failed apply for something that easy to check upfront and I would also look up the best cost effective image to choose in order to save money.
+
+I would trust the actual state of the infrastructure over the error message on screen. The provider error looked like a failure, but the VM had built fine, and checking Azure directly before reacting is a habit I'd bring into any incident, not just this project.
+
+I would also give the NSG rules least privilege from the start, opening only the exact port and source needed, rather than settling for something broader and tightening it later.
+
