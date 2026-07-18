@@ -371,9 +371,9 @@ At this point I ran `terraform plan` to check that everything matched. If nothin
 Instead, it kept showing `0 to add, 1 to change, 0 to destroy`, even though I hadn't touched anything. I looked into why.
 
 ### Problem 3: The change that kept reappering
-What was happening. Azure automatically adds a small built-in identity to the VM to support one of its compliance features. Terraform didn't recognize this identity as something it had created, so it saw it as a mistake and removed it every time it ran. Azure then put it back. This created a loop: every time I ran Terraform, it undid something Azure needed, and Azure just redid it.
+What was happening: Azure automatically adds a small built-in identity to the VM to support one of its compliance features. Terraform didn't recognize this identity as something it had created, so it saw it as a mistake and removed it every time it ran. Azure then put it back. This created a loop: every time I ran Terraform, it undid something Azure needed, and Azure just redid it.
 
-How I fixed it. I told Terraform to leave that one specific setting alone, since it was being managed by Azure itself, not by my code. I added this to the VM's configuration in the `main.tf` file:
+How I fixed it: I told Terraform to leave that one specific setting alone, since it was being managed by Azure itself, not by my code. I added this to the VM's configuration in the `main.tf` file:
 
 ```hcl
 lifecycle {
@@ -381,7 +381,7 @@ lifecycle {
 }
 ```
 
-What this taught me. I went in assuming Terraform should control everything about the VM, and this was the first time I ran into a setting that genuinely wasn't mine to manage. It took some digging to figure out Azure was the one putting the identity back, not a bug in my code. Once I understood that, the fix was simple, but getting there taught me to actually read what's changing before assuming something's wrong
+What this taught me: I went in assuming Terraform should control everything about the VM, and this was the first time I ran into a setting that genuinely wasn't mine to manage. It took some digging to figure out Azure was the one putting the identity back, not a bug in my code. Once I understood that, the fix was simple, but getting there taught me to actually read what's changing before assuming something's wrong
 
 ```
 terraform plan
