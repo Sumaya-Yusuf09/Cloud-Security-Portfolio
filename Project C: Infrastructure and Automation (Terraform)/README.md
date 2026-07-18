@@ -250,20 +250,20 @@ The first VM size and region I chose both failed when I ran `apply`. I checked w
 
 While the VM was being created, `terraform apply` returned an error partway through. Instead of panicking, I checked the Azure portal directly and found the VM had actually finished building successfully. The error was a timing issue with a resource created right after the VM, a known rough edge in how Azure occasionally handles a large deployment with many resources at once.
 
-```
-terraform state list
 
-terraform import azurerm_windows_virtual_machine.vm /subscriptions/22536e4e-07d4-4c40-b7bd-dd30a259baa5/resourceGroups/project-rg/providers/Microsoft.Compute/virtualMachines/project-vm
+`terraform state list`
 
-terraform import azurerm_subnet.general /subscriptions/22536e4e-07d4-4c40-b7bd-dd30a259baa5/resourceGroups/project-rg/providers/Microsoft.Network/virtualNetworks/project-vnet/subnets/project-general-subnet
+`terraform import azurerm_windows_virtual_machine.vm /subscriptions/YOUR SUBSCRIPTION ID/resourceGroups/project-rg/providers/Microsoft.Compute/virtualMachines/project-vm`
 
-terraform state list
+`terraform import azurerm_subnet.general /subscriptions/YOUR SUBSCRIPTION ID/resourceGroups/project-rg/providers/Microsoft.Network/virtualNetworks/project-vnet/subnets/project-general-subnet`
 
-terraform plan
+`terraform state list`
 
-terraform apply
+`terraform plan`
 
-```
+`terraform apply`
+
+
 
 Rather than deleting everything and starting over, I compared what Terraform believed existed, using `terraform state list`, against what was genuinely sitting in Azure. Two resources, the VM itself and the general subnet, existed in Azure but were missing from Terraform's own records. I brought Terraform's records back in line with reality using `terraform import`, pointing it at the exact resources already running in Azure. Once terraform imported them successfully, `terraform plan` came back clean, confirming Terraform and Azure agreed again with the output `0 to add, 1 to change, 0 to destroy`. That is when i ran `terraform apply`.
 
