@@ -1,4 +1,4 @@
-# Project 1: Infrastructure and Automation with Terraform
+# Project C: Infrastructure and Automation with Terraform
 
 ## The problem this solves
 
