@@ -120,9 +120,9 @@ terraform apply
 
 **Why it matters to a business.** Think of the two subnets like two separate rooms in an office. The general subnet is the open floor where everyday traffic passes through. The private subnet is the locked back room where the sensitive machine lives. Splitting them means a strict lock can be put on just the back room, without also locking the front door that everyone needs to use.
 
-![Terraform plan output, part 1](screenshots/step4-plan-1.png)
-![Terraform plan output, part 2](screenshots/step4-plan-2.png)
-![VNet and both subnets in the Azure portal](screenshots/step4-vnet-subnets.png)
+![Terraform plan output, part 1](screenshots/Step%204.1%20terraform%20plan.png)
+![Terraform plan output, part 2](screenshots/Step%204.2%20terraform%20plan%20%28continued%29.png)
+![VNet and both subnets in the Azure portal](screenshots/Step%204.3%20Azure%20portal%20-%20Virtual%20Network%20And%20Subnets.png)
 
 ---
 
@@ -169,7 +169,7 @@ resource "azurerm_subnet_network_security_group_association" "private_assoc" {
 
 **Why it matters to a business.** This is the same logic as a company handing out door keys. Starting from "nobody has a key unless we specifically gave them one" is far safer than starting from "everyone has a key until we take theirs away." If a rule gets forgotten, the safe version fails closed, and the risky version fails open. Most real-world breaches happen because something was left open that someone forgot about.
 
-![NSG rule list showing deny-all and the one narrow allow rule](screenshots/step5-nsg-rules.png)
+![NSG rule list showing deny-all and the one narrow allow rule](screenshots/Step%205.%20NSG%20rules%20list.png)
 
 ---
 
@@ -268,7 +268,7 @@ lifecycle {
 
 The lesson: not every setting on a cloud resource belongs to the tool that built it. Recognising when something is being managed elsewhere, and telling your automation to step back from it, is part of running infrastructure safely rather than fighting the platform it runs on.
 
-![VM networking tab showing no public IP](screenshots/step6-vm-no-public-ip.png)
+![VM networking tab showing no public IP](screenshots/Step%206.%20VM%20networking%20showing%20no%20public%20IP.png)
 
 ---
 
@@ -280,7 +280,7 @@ I tried opening the VM's private IP address directly in a browser, from my own m
 
 **Why it matters to a business.** A setting that looks correct in the configuration file isn't proof that it actually behaves that way once deployed. Testing from a genuinely outside position, the same way an attacker would have to, is the only real way to confirm a system is protected. This connection failed, which is exactly the result that was expected.
 
-![Failed connection attempt from outside the VNet](screenshots/step7-isolation-proof.png)
+![Failed connection attempt from outside the VNet](screenshots/Step%207.%20Failed%20connection%20attempt%20proving%20isolation.png)
 
 ---
 
@@ -306,8 +306,8 @@ Every value that could change between environments, the region, the VM size, the
 
 **Why it matters to a business.** This is what makes the project reusable rather than a one-time build. Standing up the exact same environment again for staging should only ever mean changing a handful of values in one file, never rewriting the underlying logic. That's the difference between infrastructure that scales across a company and infrastructure that only ever worked once.
 
-![Terraform apply output showing the VM private IP](screenshots/step8-apply-output.png)
-![Storage account created for logging](screenshots/step8-storage-account.png)
+![Terraform apply output showing the VM private IP](screenshots/Step%208.1%20Terraform%20apply%20output%20showing%20vm_private_ip.png)
+![Storage account created for logging](screenshots/Step%208.2%20Storage%20account%20created%20for%20logging.png)
 
 ---
 
@@ -319,15 +319,15 @@ terraform plan
 
 Reported no changes, since nothing had been edited since the last apply.
 
-![Terraform plan showing no changes](screenshots/step9-plan-no-changes.png)
+![Terraform plan showing no changes](screenshots/Step%209.1%20Terraform%20plan%20showing%20no%20changes.png)
 
 ```
 terraform destroy
 ```
 
-![Destroy prompt requesting the admin password](screenshots/step9-destroy-prompt.png)
-![Destroy plan showing 9 resources to remove](screenshots/step9-destroy-plan.png)
-![Destroy complete, 9 resources destroyed](screenshots/step9-destroy-complete.png)
+![Destroy prompt requesting the admin password](screenshots/Step%209.2%20terrafom%20destroy.png)
+![Destroy plan showing 9 resources to remove](screenshots/Step%209.3%20Destroy%20plan.png)
+![Destroy complete, 9 resources destroyed](screenshots/Step%209.4%20Destroy%20Complete.png)
 
 **What this does.** Confirms the configuration and the real environment genuinely match, then removes every resource that was built.
 
