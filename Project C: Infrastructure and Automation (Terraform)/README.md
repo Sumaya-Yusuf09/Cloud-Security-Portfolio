@@ -329,7 +329,7 @@ The lesson here is one that applies well beyond Terraform: an error message on s
 
 I tried opening the VM's private IP address directly in a browser, from my own machine, outside the network.
 
-**What this does.** Confirms the isolation actually works in practice, not just on paper.
+**What this does.** Confirms the isolation actually works in practice.
 
 **Why it matters to a business.** A setting that looks correct in the configuration file isn't proof that it actually behaves that way once deployed. Testing from a genuinely outside position, the same way an attacker would have to, is the only real way to confirm a system is protected. This connection failed, which is exactly the result that was expected.
 
@@ -353,7 +353,7 @@ output "vm_private_ip" {
 }
 ```
 
-Every value that could change between environments, the region, the VM size, the naming prefix, lives in `variables.tf` and `terraform.tfvars`, and is never hardcoded directly into the main configuration.
+Every value that could change between environments lives in `variables.tf` as a default, and could be overridden per environment through `terraform.tfvars` without ever touching the main configuration. OBS: my `terraform.tfvars` file is empty since I only ever deployed one environment and never overrode anything yet.
 
 **What this does.** Adds a storage account for logging, and confirms that all the configurable details of the project sit in one place, separate from the actual logic of what gets built.
 
