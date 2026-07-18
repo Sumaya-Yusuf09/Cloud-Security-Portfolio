@@ -11,7 +11,10 @@ Terraform fixes this by making the environment a file instead of something someo
 A resource group with a virtual network split into two subnets, a security group that blocks all inbound traffic by default except for one specific exception, a Windows VM in the private subnet with no public IP, and a storage account. Terraform keeps its own record of everything it built, called state, and that record lives in Azure Blob Storage instead of on my laptop, so more than one person could work on this safely.
 
 ---
+## Tools used
+`Terraform` `Azure CLI` `Azure` `Powershell` `Web Browser`
 
+---
 ## Step 1. Create the remote state storage account
 
 Run this command in the terminal:
