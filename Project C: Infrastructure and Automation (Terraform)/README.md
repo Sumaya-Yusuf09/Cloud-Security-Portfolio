@@ -77,7 +77,7 @@ terraform init
 
 **Why it matters to a business.** This is what would let a CI/CD pipeline, or a second engineer, safely run the same project without needing anything from the original laptop it was built on.
 
-![Terraform successfully initialized](screenshots/step3-terraform-init.png)
+![Terraform successfully initialized](screenshots/Step%203.%20Terraform%20has%20been%20successfully%20initialized.png)
 
 ---
 
