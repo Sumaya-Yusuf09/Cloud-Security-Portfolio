@@ -250,23 +250,24 @@ The first VM size and region I chose both failed when I ran `apply`. I checked w
 
 While the VM was being created, `terraform apply` returned an error partway through. Instead of panicking, I checked the Azure portal directly and found the VM had actually finished building successfully. The error was a timing issue with a resource created right after the VM, a known rough edge in how Azure occasionally handles a large deployment with many resources at once.
 
-Rather than deleting everything and starting over, I compared what Terraform believed existed, using `terraform state list`, against what was genuinely sitting in Azure. Two resources, the VM itself and the general subnet, existed in Azure but were missing from Terraform's own records. I brought Terraform's records back in line with reality using `terraform import`, pointing it at the exact resources already running in Azure. Once that was done, `terraform plan` came back clean, confirming Terraform and Azure agreed again.
+```
+terraform state list
 
-The lesson here is one that applies well beyond Terraform: an error message on screen doesn't always mean something actually failed. Checking the real state of a system before reacting, rather than assuming the error message is the whole story, is a habit that matters just as much in security work as it does in infrastructure.
+terraform import azurerm_windows_virtual_machine.vm /subscriptions/22536e4e-07d4-4c40-b7bd-dd30a259baa5/resourceGroups/project-rg/providers/Microsoft.Compute/virtualMachines/project-vm
 
-### Problem 3: the identity that kept reappearing
+terraform import azurerm_subnet.general /subscriptions/22536e4e-07d4-4c40-b7bd-dd30a259baa5/resourceGroups/project-rg/providers/Microsoft.Network/virtualNetworks/project-vnet/subnets/project-general-subnet
 
-Azure automatically attaches a system identity to the VM to support a built-in compliance feature. Terraform didn't know why that identity was there, saw it as something it hadn't created, and removed it every time it ran. Azure then put the identity straight back. This created a loop where every single apply undid something Azure needed.
+terraform state list
 
-The fix was telling Terraform to leave that one specific setting alone, since it was legitimately being managed by something else:
+terraform plan
 
-```hcl
-lifecycle {
-  ignore_changes = [identity, vm_agent_platform_updates_enabled]
-}
+terraform apply
+
 ```
 
-The lesson: not every setting on a cloud resource belongs to the tool that built it. Recognising when something is being managed elsewhere, and telling your automation to step back from it, is part of running infrastructure safely rather than fighting the platform it runs on.
+Rather than deleting everything and starting over, I compared what Terraform believed existed, using `terraform state list`, against what was genuinely sitting in Azure. Two resources, the VM itself and the general subnet, existed in Azure but were missing from Terraform's own records. I brought Terraform's records back in line with reality using `terraform import`, pointing it at the exact resources already running in Azure. Once terraform imported them successfully, `terraform plan` came back clean, confirming Terraform and Azure agreed again with the output `0 to add, 1 to change, 0 to destroy`. That is when i ran `terraform apply`.
+
+The lesson here is one that applies well beyond Terraform: an error message on screen doesn't always mean something actually failed. Checking the real state of a system before reacting, rather than assuming the error message is the whole story, is a habit that matters just as much in security work as it does in infrastructure.
 
 ![VM networking tab showing no public IP](screenshots/Step%206.%20VM%20networking%20showing%20no%20public%20IP.png)
 
@@ -312,6 +313,23 @@ Every value that could change between environments, the region, the VM size, the
 ---
 
 ## Step 9. Proving it's stable, then tearing it down
+
+At this point I ran `terraform plan` to check that everything matched. If nothing had changed since the last apply, it should say so with zero changes.
+
+Instead, it kept showing `0 to add, 1 to change, 0 to destroy`, even though I hadn't touched anything. I looked into why.
+
+### Problem 3: The change that kept reappering
+What was happening. Azure automatically adds a small built-in identity to the VM to support one of its compliance features. Terraform didn't recognize this identity as something it had created, so it saw it as a mistake and removed it every time it ran. Azure then put it back. This created a loop: every time I ran Terraform, it undid something Azure needed, and Azure just redid it.
+
+How I fixed it. I told Terraform to leave that one specific setting alone, since it was being managed by Azure itself, not by my code. I added this to the VM's configuration in the `main.tf` file:
+
+```hcl
+lifecycle {
+  ignore_changes = [identity, vm_agent_platform_updates_enabled]
+}
+```
+
+What this taught me. I went in assuming Terraform should control everything about the VM, and this was the first time I ran into a setting that genuinely wasn't mine to manage. It took some digging to figure out Azure was the one putting the identity back, not a bug in my code. Once I understood that, the fix was simple, but getting there taught me to actually read what's changing before assuming something's wrong
 
 ```
 terraform plan
