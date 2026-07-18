@@ -2,13 +2,13 @@
 
 ## The problem this solves
 
-When a company builds its cloud environment by clicking through the Azure portal by hand, small mistakes creep in every time someone repeats the process. A setting gets forgotten. A resource gets named slightly differently. After a while, nobody can say with confidence that the staging environment actually matches production, and that gap is where outages and security gaps usually come from.
+Building cloud environments by hand in the Azure portal doesn't hold up over time. Every time someone repeats the process, something changes without anyone meaning it to. A setting gets skipped. A resource gets named slightly differently than last time. Do this across dev, staging, and production, and eventually nobody can say for sure that the environments actually match. That's usually where outages and security problems come from.
 
-Terraform solves this by turning the environment into a file instead of a memory. The same file builds dev, staging, and production the exact same way, every time.
+Terraform fixes this by making the environment a file instead of something someone has to remember and redo. The same file builds dev, staging, and production the same way, every time.
 
 ## What this builds
 
-A resource group containing a virtual network with two subnets, a network security group that blocks everything by default except one narrow exception, a Windows VM sitting in the private subnet with no public IP, and a storage account. Terraform's own record of all of this, called state, is stored remotely in Azure Blob Storage rather than on a laptop.
+A resource group with a virtual network split into two subnets, a security group that blocks all inbound traffic by default except for one specific exception, a Windows VM in the private subnet with no public IP, and a storage account. Terraform keeps its own record of everything it built, called state, and that record lives in Azure Blob Storage instead of on my laptop, so more than one person could work on this safely.
 
 ---
 
