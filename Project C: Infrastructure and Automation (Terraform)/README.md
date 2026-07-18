@@ -14,6 +14,8 @@ A resource group with a virtual network split into two subnets, a security group
 
 ## Step 1. Create the remote state storage account
 
+Run this command in the terminal:
+
 ```
 az group create --name rg-tfstate --location northeurope
 
@@ -48,6 +50,7 @@ Created `main.tf`, `variables.tf`, `terraform.tfvars`, `outputs.tf`, `backend.tf
 
 ## Step 3. Configure the backend and initialize
 
+Write this code in the `backend.tf` file
 ```hcl
 terraform {
   required_providers {
@@ -83,6 +86,8 @@ terraform init
 
 ## Step 4. Resource group, network, and subnets
 
+Write this code in the `main.tf` file
+
 ```hcl
 resource "azurerm_resource_group" "main" {
   name     = "${var.project_name}-rg"
@@ -111,6 +116,46 @@ resource "azurerm_subnet" "private" {
 }
 ```
 
+And this code in the `variables.tf` file
+
+```
+variable "project_name" {
+  description = "Prefix used for naming all resources"
+  type        = string
+  default     = "project"
+}
+
+variable "location" {
+  description = "Azure region to deploy into"
+  type        = string
+  default     = "swedencentral"
+}
+
+variable "vnet_address_space" {
+  description = "Address space for the virtual network"
+  type        = list(string)
+  default     = ["10.0.0.0/16"]
+}
+
+variable "public_subnet_prefix" {
+  description = "Address prefix for the general use subnet"
+  type        = list(string)
+  default     = ["10.0.1.0/24"]
+}
+
+variable "private_subnet_prefix" {
+  description = "Address prefix for the private subnet"
+  type        = list(string)
+  default     = ["10.0.2.0/24"]
+}
+```
+This goes in `variables.tf` because it holds the values that could change, instead of hardcoding them into `main.tf`.
+
+So if I ever needed a different name, region, or address range, I'd only edit `variables.tf`, never the actual resource logic.
+
+`main.tf` is the blueprint. `variables.tf` is the list of details that get plugged into it.
+
+
 ```
 terraform plan
 terraform apply
@@ -127,6 +172,8 @@ terraform apply
 ---
 
 ## Step 5. Network security group
+
+Write this code in the `main.tf` file
 
 ```hcl
 resource "azurerm_network_security_group" "private_nsg" {
@@ -175,6 +222,8 @@ resource "azurerm_subnet_network_security_group_association" "private_assoc" {
 
 ## Step 6. Virtual machine, with no public IP
 
+Write this code in the `main.tf` file
+
 ```hcl
 resource "azurerm_network_interface" "vm_nic" {
   name                = "${var.project_name}-vm-nic"
@@ -215,7 +264,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
   }
 }
 ```
-
+Write this code in the `variables.tf` file
 ```hcl
 variable "vm_size" {
   description = "Size of the virtual machine"
@@ -248,7 +297,7 @@ The first VM size and region I chose both failed when I ran `apply`. I checked w
 
 ### Problem 2: an apply that looked broken but wasn't
 
-While the VM was being created, `terraform apply` returned an error partway through. Instead of panicking, I checked the Azure portal directly and found the VM had actually finished building successfully. The error was a timing issue with a resource created right after the VM, a known rough edge in how Azure occasionally handles a large deployment with many resources at once.
+While the VM was being created, `terraform apply` returned an error partway through. I checked the Azure portal directly and found the VM had actually finished building successfully. The error was a timing issue with a resource created right after the VM, a known rough edge in how Azure occasionally handles a large deployment with many resources at once.
 
 ```
 terraform state list
@@ -256,6 +305,9 @@ terraform state list
 terraform import azurerm_windows_virtual_machine.vm /subscriptions/YOUR SUBSCRIPTION ID/resourceGroups/project-rg/providers/Microsoft.Compute/virtualMachines/project-vm
 
 terraform import azurerm_subnet.general /subscriptions/YOUR SUBSCRIPTION ID/resourceGroups/project-rg/providers/Microsoft.Network/virtualNetworks/project-vnet/subnets/project-general-subnet
+
+```
+```
 
 terraform state list
 
