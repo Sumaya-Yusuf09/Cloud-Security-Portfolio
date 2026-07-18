@@ -42,7 +42,7 @@ Created `main.tf`, `variables.tf`, `terraform.tfvars`, `outputs.tf`, `backend.tf
 
 **What this does.** Splits the project into separate files instead of one long file: what gets built, what values can change, and what Terraform outputs afterward.
 
-**Why it matters to a business.** Anyone opening this project later, whether that's a new hire, a reviewer, or a hiring manager, can find what they're looking for quickly instead of scrolling through one giant file. The `.gitignore` file also makes sure nothing sensitive, like the state file itself, ever accidentally gets uploaded to GitHub.
+**Why it matters to a business.** Anyone opening this project later, whether that's a new hire, a reviewer, or a security engineer, can find what they're looking for quickly instead of scrolling through one giant file. The `.gitignore` file also makes sure nothing sensitive, like the state file itself, ever accidentally gets uploaded to GitHub.
 
 ---
 
